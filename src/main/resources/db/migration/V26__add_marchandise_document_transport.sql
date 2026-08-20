@@ -1,0 +1,1 @@
+ALTER TABLE marchandises ADD COLUMN document_transport VARCHAR(50);

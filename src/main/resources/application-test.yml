@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:transit_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: test-secret-key-not-for-production-use-only-testing-purposes-0000
+  seed:
+    enabled: false

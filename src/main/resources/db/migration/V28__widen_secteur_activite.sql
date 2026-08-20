@@ -1,0 +1,1 @@
+ALTER TABLE entreprises ALTER COLUMN secteur_activite TYPE VARCHAR(500);

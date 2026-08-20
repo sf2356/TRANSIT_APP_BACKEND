@@ -1,0 +1,2 @@
+ALTER TABLE entreprises ADD COLUMN template_pdf VARCHAR(20) DEFAULT 'MODERNE';
+ALTER TABLE entreprises ADD COLUMN couleur_accent VARCHAR(7) DEFAULT '#1E3A5F';

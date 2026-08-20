@@ -1,0 +1,34 @@
+package com.transit.platform.common;
+
+/**
+ * Codes d'erreur métier standardisés, exposés au frontend/mobile pour un traitement
+ * programmatique (au-delà du simple message HTTP).
+ */
+public enum ErrorCode {
+    VALIDATION_ERROR,
+    UNAUTHORIZED,
+    FORBIDDEN,
+    ENTREPRISE_NOT_FOUND,
+    UTILISATEUR_NOT_FOUND,
+    TIERS_NOT_FOUND,
+    DOSSIER_NOT_FOUND,
+    CLIENT_NOT_FOUND,
+    MARCHANDISE_NOT_FOUND,
+    DOCUMENT_NOT_FOUND,
+    COTATION_NOT_FOUND,
+    FACTURE_NOT_FOUND,
+    PAIEMENT_NOT_FOUND,
+    CHARGE_NOT_FOUND,
+    MOUVEMENT_CAISSE_NOT_FOUND,
+    RELANCE_NOT_FOUND,
+    VALIDATION_NOT_FOUND,
+    ROLE_NOT_FOUND,
+    RATE_LIMIT_EXCEEDED,
+    STORAGE_ERROR,
+    INVALID_STATUS,
+    INVALID_AMOUNT,
+    DUPLICATE_REFERENCE,
+    CONCURRENT_MODIFICATION,
+    CROSS_TENANT_ACCESS_DENIED,
+    INTERNAL_ERROR
+}

@@ -1,0 +1,1 @@
+ALTER TABLE tiers ADD COLUMN boite_postale VARCHAR(100);
