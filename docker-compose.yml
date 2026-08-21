@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: transit_platform
-      POSTGRES_USER: transit_app
-      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: app_transit_db
+      POSTGRES_USER: transit_app_user
+      POSTGRES_PASSWORD: transit_app_pass
     ports:
       - "5432:5432"
     volumes:
