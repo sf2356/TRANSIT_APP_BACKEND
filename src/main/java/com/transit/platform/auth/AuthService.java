@@ -60,6 +60,7 @@ public class AuthService {
         entreprise.setEmail(request.emailEntreprise());
         entreprise.setDeviseDefaut("XOF");
         entreprise.setStatut("ACTIF");
+        entreprise.setDateExpirationEssai(java.time.LocalDate.now().plusDays(14));
         entreprise = entrepriseRepository.save(entreprise);
 
         ParametreEntreprise parametres = new ParametreEntreprise();
@@ -96,6 +97,13 @@ public class AuthService {
         }
         if (!"ACTIF".equals(utilisateur.getStatut())) {
             throw BusinessException.forbidden("Ce compte utilisateur est suspendu");
+        }
+
+        Entreprise entrepriseConnexion = entrepriseRepository.findById(utilisateur.getEntrepriseId()).orElseThrow();
+        if (entrepriseConnexion.getDateExpirationEssai() != null
+                && entrepriseConnexion.getDateExpirationEssai().isBefore(java.time.LocalDate.now())) {
+            throw BusinessException.forbidden(
+                    "Votre période d'essai de 14 jours est terminée. Contactez-nous pour continuer à utiliser la plateforme.");
         }
 
         utilisateur.setDerniereConnexion(Instant.now());
@@ -164,8 +172,11 @@ public class AuthService {
                 .toList();
         Entreprise entreprise = entrepriseRepository.findById(utilisateur.getEntrepriseId())
                 .orElseThrow(() -> BusinessException.notFound(ErrorCode.ENTREPRISE_NOT_FOUND, "Entreprise introuvable"));
+        Long joursRestantsEssai = entreprise.getDateExpirationEssai() != null
+                ? java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), entreprise.getDateExpirationEssai())
+                : null;
         EntrepriseResumeDto entrepriseDto = new EntrepriseResumeDto(entreprise.getId(), entreprise.getNom(),
-                entreprise.getDeviseDefaut(), entreprise.getLogo());
+                entreprise.getDeviseDefaut(), entreprise.getLogo(), joursRestantsEssai);
 
         return new MeResponse(utilisateur.getId(), utilisateur.getNom(), utilisateur.getPrenom(), utilisateur.getEmail(),
                 utilisateur.getTelephone(), roles, permissions, entrepriseDto, utilisateur.getVilleAffectation(),

@@ -44,6 +44,9 @@ public class Entreprise extends BaseAuditableEntity {
     @Column(name = "mentions_legales", columnDefinition = "TEXT")
     private String mentionsLegales;
 
+    @Column(name = "date_expiration_essai")
+    private java.time.LocalDate dateExpirationEssai;
+
     @Column(name = "template_pdf")
     private String templatePdf = "MODERNE";
 
@@ -94,6 +97,8 @@ public class Entreprise extends BaseAuditableEntity {
     public String getCouleurAccent() { return couleurAccent; }
     public void setCouleurAccent(String couleurAccent) { this.couleurAccent = couleurAccent; }
     public void setMentionsLegales(String mentionsLegales) { this.mentionsLegales = mentionsLegales; }
+    public java.time.LocalDate getDateExpirationEssai() { return dateExpirationEssai; }
+    public void setDateExpirationEssai(java.time.LocalDate dateExpirationEssai) { this.dateExpirationEssai = dateExpirationEssai; }
     public String getTypeActivite() { return typeActivite; }
     public void setTypeActivite(String typeActivite) { this.typeActivite = typeActivite; }
     public String getStatut() { return statut; }
