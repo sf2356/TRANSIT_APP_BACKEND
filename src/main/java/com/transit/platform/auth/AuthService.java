@@ -130,6 +130,14 @@ public class AuthService {
                 .filter(u -> "ACTIF".equals(u.getStatut()))
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "Utilisateur introuvable ou inactif", HttpStatus.UNAUTHORIZED));
 
+        Entreprise entrepriseRefresh = entrepriseRepository.findById(entrepriseId).orElseThrow();
+        if (entrepriseRefresh.getDateExpirationEssai() != null
+                && entrepriseRefresh.getDateExpirationEssai().isBefore(java.time.LocalDate.now())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                    "Votre période d'essai de 14 jours est terminée. Contactez-nous pour continuer à utiliser la plateforme.",
+                    HttpStatus.UNAUTHORIZED);
+        }
+
         return issueTokens(utilisateur);
     }
 

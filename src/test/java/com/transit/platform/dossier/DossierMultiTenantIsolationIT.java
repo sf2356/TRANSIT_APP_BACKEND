@@ -56,12 +56,12 @@ class DossierMultiTenantIsolationIT {
         dossierB.setClientId(clientB);
         dossierB.setTitre("Dossier confidentiel entreprise B");
         dossierB.setStatut("OUVERT");
-        dossierB = dossierRepository.save(dossierB);
+        final Dossier dossierBSauvegarde = dossierRepository.save(dossierB);
 
         // Un utilisateur authentifié pour l'entreprise A tente d'accéder au dossier de B
         authentifierComme(UUID.randomUUID(), entrepriseA);
 
-        assertThatThrownBy(() -> dossierService.getById(dossierB.getId()))
+        assertThatThrownBy(() -> dossierService.getById(dossierBSauvegarde.getId()))
                 .isInstanceOf(BusinessException.class);
     }
 
