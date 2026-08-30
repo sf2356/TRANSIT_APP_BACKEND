@@ -525,14 +525,8 @@ public final class PdfDocumentBuilder {
             texte(cb, FONT_NORMAL, 9.5f, TEXT_DARK, "Conditions de règlement : " + ctx.conditions(), MARGIN, leftY, Element.ALIGN_LEFT);
             leftY -= 20;
         }
-        if (ctx.coordonneesBancaires() != null && ctx.coordonneesBancaires().banque() != null && !ctx.coordonneesBancaires().banque().isBlank()) {
-            texte(cb, FONT_NORMAL, 9, TEXT_DARK, "Banque : " + ctx.coordonneesBancaires().banque(), MARGIN, leftY, Element.ALIGN_LEFT);
-            leftY -= 14;
-            if (ctx.coordonneesBancaires().iban() != null && !ctx.coordonneesBancaires().iban().isBlank()) {
-                texte(cb, FONT_NORMAL, 9, TEXT_DARK, "IBAN : " + ctx.coordonneesBancaires().iban(), MARGIN, leftY, Element.ALIGN_LEFT);
-                leftY -= 14;
-            }
-        }
+        // Correctif (retour utilisateur) : Banque/IBAN retirés d'ici — déjà affichés dans
+        // le pied de page, doublon inutile à côté du total.
         if (ctx.notes() != null && !ctx.notes().isBlank()) {
             texte(cb, FONT_NORMAL, 8.5f, TEXT_MUTED, ctx.notes(), MARGIN, leftY - 6, Element.ALIGN_LEFT);
         }
