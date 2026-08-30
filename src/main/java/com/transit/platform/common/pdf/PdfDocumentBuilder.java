@@ -148,14 +148,20 @@ public final class PdfDocumentBuilder {
         cb.rectangle(0, yTop - headerH, PAGE_W, headerH);
         cb.fill();
 
-        float logoSize = 82;
+        float logoSize = 100;
         dessinerLogo(cb, ctx.entreprise(), ctx.accent(), MARGIN, yTop - headerH + (headerH - logoSize) / 2, logoSize);
 
         float textRightX = PAGE_W - MARGIN;
-        texte(cb, FONT_BOLD, 17, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
-                textRightX, yTop - 42, Element.ALIGN_RIGHT);
 
-        dessinerActivite(cb, ctx.entreprise().activite(), textRightX, yTop - 58, 260);
+        // Nom + activité groupés en bloc centré juste à côté du logo (demande utilisateur),
+        // plutôt qu'étirés jusqu'à la marge droite de la page.
+        float blockWidth = 300;
+        float blockCenterX = PAGE_W - MARGIN - blockWidth / 2;
+
+        texte(cb, FONT_BOLD, 17, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
+                blockCenterX, yTop - 42, Element.ALIGN_CENTER);
+
+        dessinerActiviteCentree(cb, ctx.entreprise().activite(), blockCenterX, yTop - 60, blockWidth);
 
         float cutH = 46;
         float cutTop = yTop - headerH;
@@ -187,13 +193,17 @@ public final class PdfDocumentBuilder {
         PdfContentByte cb = writer.getDirectContent();
         float y = PAGE_H - MARGIN;
 
-        float logoSize = 68;
+        float logoSize = 100;
         dessinerLogo(cb, ctx.entreprise(), ctx.accent(), MARGIN, y - logoSize, logoSize);
 
-        texte(cb, FONT_BOLD, 15, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
-                PAGE_W - MARGIN, y - 16, Element.ALIGN_RIGHT);
-        dessinerActivite(cb, ctx.entreprise().activite(), PAGE_W - MARGIN, y - 30, 260);
+        // Nom + activité groupés en bloc centré juste à côté du logo (demande utilisateur),
+        // plutôt qu'étirés jusqu'à la marge droite de la page.
+        float blockWidth = 260;
+        float blockCenterX = PAGE_W - MARGIN - blockWidth / 2;
 
+        texte(cb, FONT_BOLD, 15, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
+                blockCenterX, y - 16, Element.ALIGN_CENTER);
+        dessinerActiviteCentree(cb, ctx.entreprise().activite(), blockCenterX, y - 32, blockWidth);
         y -= logoSize + 20;
         cb.setColorStroke(ctx.accent());
         cb.setLineWidth(2);
@@ -237,16 +247,21 @@ public final class PdfDocumentBuilder {
         float y = PAGE_H - MARGIN;
 
         float textX = MARGIN;
+        float logoSizeMini = 46;
         if (ctx.entreprise().logoBytes() != null) {
-            dessinerLogo(cb, ctx.entreprise(), ctx.accent(), MARGIN, y - 46, 46);
-            textX = MARGIN + 58;
+            dessinerLogo(cb, ctx.entreprise(), ctx.accent(), MARGIN, y - logoSizeMini, logoSizeMini);
+            textX = MARGIN + logoSizeMini + 14;
         }
 
-        texte(cb, FONT_BOLD, 13, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
-                textX, y - 14, Element.ALIGN_LEFT);
-        dessinerActiviteGauche(cb, ctx.entreprise().activite(), textX, y - 27, 300);
-        texte(cb, FONT_NORMAL, 11, TEXT_DARK, ctx.typeDocument() + " " + ctx.numero(), PAGE_W - MARGIN, y - 14, Element.ALIGN_RIGHT);
+        // Nom + activité groupés en bloc centré juste à côté du logo (demande utilisateur),
+        // même traitement que Moderne et Classique.
+        float blockWidth = 260;
+        float blockCenterX = PAGE_W - MARGIN - blockWidth / 2;
 
+        texte(cb, FONT_BOLD, 13, TEXT_DARK, ctx.entreprise().nom() != null ? ctx.entreprise().nom() : "",
+                blockCenterX, y - 14, Element.ALIGN_CENTER);
+        dessinerActiviteCentree(cb, ctx.entreprise().activite(), blockCenterX, y - 27, blockWidth);
+        texte(cb, FONT_NORMAL, 11, TEXT_DARK, ctx.typeDocument() + " " + ctx.numero(), PAGE_W - MARGIN, y - 14, Element.ALIGN_RIGHT);
         y -= 55;
         cb.setColorStroke(BORDER);
         cb.setLineWidth(0.5f);
@@ -352,10 +367,24 @@ public final class PdfDocumentBuilder {
         if (activite == null || activite.isBlank()) return;
         List<String> lignes = decouperTexte(activite.toUpperCase(), FONT_NORMAL, 8, maxWidth);
         float y = yStart;
-        int max = Math.min(lignes.size(), 2);
+        int max = Math.min(lignes.size(), 3);
         for (int i = 0; i < max; i++) {
             texte(cb, FONT_NORMAL, 8, TEXT_MUTED, lignes.get(i), x, y, Element.ALIGN_LEFT);
-            y -= 10;
+            y -= 11;
+        }
+    }
+
+    /** Secteur d'activité centré dans un bloc de largeur donnée — utilisé quand le nom et
+     * l'activité doivent former un groupe visuel compact à côté du logo, plutôt que d'être
+     * étirés jusqu'à la marge droite de la page. */
+    private static void dessinerActiviteCentree(PdfContentByte cb, String activite, float centerX, float yStart, float maxWidth) {
+        if (activite == null || activite.isBlank()) return;
+        List<String> lignes = decouperTexte(activite.toUpperCase(), FONT_BOLD, 8.5f, maxWidth);
+        float y = yStart;
+        int max = Math.min(lignes.size(), 3);
+        for (int i = 0; i < max; i++) {
+            texte(cb, FONT_BOLD, 8.5f, TEXT_DARK, lignes.get(i), centerX, y, Element.ALIGN_CENTER);
+            y -= 11;
         }
     }
 
@@ -384,12 +413,12 @@ public final class PdfDocumentBuilder {
 
     private static void dessinerActivite(PdfContentByte cb, String activite, float rightX, float yStart, float maxWidth) {
         if (activite == null || activite.isBlank()) return;
-        List<String> lignes = decouperTexte(activite.toUpperCase(), FONT_NORMAL, 8.5f, maxWidth);
+        List<String> lignes = decouperTexte(activite.toUpperCase(), FONT_NORMAL, 8f, maxWidth);
         float y = yStart;
         int max = Math.min(lignes.size(), 3);
         for (int i = 0; i < max; i++) {
-            texte(cb, FONT_NORMAL, 8.5f, TEXT_MUTED, lignes.get(i), rightX, y, Element.ALIGN_RIGHT);
-            y -= 11;
+            texte(cb, FONT_NORMAL, 8f, TEXT_MUTED, lignes.get(i), rightX, y, Element.ALIGN_RIGHT);
+            y -= 12;
         }
     }
     private static float dessinerClient(PdfContentByte cb, float yStart, String clientNom, List<String> lignes) {
