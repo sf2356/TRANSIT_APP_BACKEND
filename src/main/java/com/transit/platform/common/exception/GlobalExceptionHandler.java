@@ -66,6 +66,23 @@ public class GlobalExceptionHandler {
                         request.getRequestURI()));
     }
 
+    /**
+     * Correctif (retour utilisateur) : une contrainte de cohérence en base (dates, valeurs
+     * uniques, clé étrangère...) remontait auparavant comme une erreur 500 générique et
+     * incompréhensible ("Une erreur interne est survenue"). Spring traduit automatiquement
+     * les exceptions JDBC/Hibernate en DataIntegrityViolationException dans la couche
+     * Repository — c'est donc cette exception-là qu'il faut intercepter, pas l'exception
+     * Hibernate d'origine (qui n'atteint jamais ce point, déjà enveloppée avant).
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.warn("Contrainte de base de données violée sur {} : {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ApiErrorResponse.of(ErrorCode.VALIDATION_ERROR,
+                        "Les informations saisies ne respectent pas une règle de cohérence (par exemple une date incohérente, ou une valeur déjà utilisée ailleurs). Vérifiez vos données et réessayez.",
+                        request.getRequestURI()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
         log.error("Erreur non gérée sur {}", request.getRequestURI(), ex);
