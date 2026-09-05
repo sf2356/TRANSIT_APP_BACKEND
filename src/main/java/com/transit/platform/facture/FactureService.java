@@ -21,8 +21,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Statuts EN_ATTENTE / PARTIELLEMENT_PAYEE / PAYEE sont des états CALCULÉS, propriété de
@@ -64,7 +66,11 @@ public class FactureService {
         Page<Facture> page = "EN_RETARD".equals(statut)
                 ? factureRepository.searchEnRetard(tenantContext.currentEntrepriseId(), clientId, dossierId, normalized, pageable)
                 : factureRepository.search(tenantContext.currentEntrepriseId(), statut, clientId, dossierId, normalized, pageable);
-        return page.map(this::toSummary);
+
+        Set<UUID> dossierIds = page.getContent().stream().map(Facture::getDossierId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, String> numerosParDossier = dossierService.findNumerosByIds(dossierIds);
+
+        return page.map(f -> toSummary(f, numerosParDossier.get(f.getDossierId())));
     }
 
     @Transactional(readOnly = true)
@@ -372,8 +378,12 @@ public class FactureService {
     }
 
     private FactureSummaryResponse toSummary(Facture f) {
+        return toSummary(f, null);
+    }
+
+    private FactureSummaryResponse toSummary(Facture f, String dossierNumero) {
         return new FactureSummaryResponse(f.getId(), f.getNumero(), f.getTypeDocument(), f.getClientId(), f.getDossierId(),
-                statutAffiche(f), f.getMontantTotal(), f.getResteAPayer(), f.getDevise(), f.getDateDocument(), f.getDateEcheance());
+                dossierNumero, statutAffiche(f), f.getMontantTotal(), f.getResteAPayer(), f.getDevise(), f.getDateDocument(), f.getDateEcheance());
     }
 
     /**

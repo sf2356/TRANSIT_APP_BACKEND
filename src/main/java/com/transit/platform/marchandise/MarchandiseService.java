@@ -15,7 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Toute opération passe d'abord par DossierService.findWithinTenant(dossierId) : c'est ce
@@ -42,8 +45,12 @@ public class MarchandiseService {
     @Transactional(readOnly = true)
     public Page<MarchandiseResponse> searchGlobal(String statut, String search, Pageable pageable) {
         String normalized = search == null ? null : "%" + search.toLowerCase() + "%";
-        return marchandiseRepository.searchForEntreprise(tenantContext.currentEntrepriseId(), statut, normalized, pageable)
-                .map(this::toResponse);
+        Page<Marchandise> page = marchandiseRepository.searchForEntreprise(tenantContext.currentEntrepriseId(), statut, normalized, pageable);
+
+        Set<UUID> dossierIds = page.getContent().stream().map(Marchandise::getDossierId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, String> numerosParDossier = dossierService.findNumerosByIds(dossierIds);
+
+        return page.map(m -> toResponse(m, numerosParDossier.get(m.getDossierId())));
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +159,11 @@ public class MarchandiseService {
     }
 
     private MarchandiseResponse toResponse(Marchandise m) {
-        return new MarchandiseResponse(m.getId(), m.getDossierId(), m.getDesignation(), m.getDescription(),
+        return toResponse(m, null);
+    }
+
+    private MarchandiseResponse toResponse(Marchandise m, String dossierNumero) {
+        return new MarchandiseResponse(m.getId(), m.getDossierId(), dossierNumero, m.getDesignation(), m.getDescription(),
                 m.getTypeMarchandise(), m.getStatut(), m.getNombreColis(), m.getTypeColis(), m.getPoidsBrut(),
                 m.getVolumeTotal(), m.getNumeroConteneur(), m.getTypeConteneur(), m.getDocumentTransport(), m.getPlomb(), m.getOrigine(),
                 m.getDestination(), m.getNatureMarchandise(), m.getMarqueReference(), m.getValeurDeclaree(),

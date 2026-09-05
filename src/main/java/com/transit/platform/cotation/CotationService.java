@@ -21,7 +21,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Les montants (ligne, HT, taxe, total) sont TOUJOURS calculés ici, jamais acceptés tels
@@ -72,8 +75,12 @@ public class CotationService {
     @Transactional(readOnly = true)
     public Page<CotationSummaryResponse> search(String statut, UUID clientId, UUID dossierId, String search, Pageable pageable) {
         String normalized = search == null ? null : "%" + search.toLowerCase() + "%";
-        return cotationRepository.search(tenantContext.currentEntrepriseId(), statut, clientId, dossierId, normalized, pageable)
-                .map(this::toSummary);
+        Page<Cotation> page = cotationRepository.search(tenantContext.currentEntrepriseId(), statut, clientId, dossierId, normalized, pageable);
+
+        Set<UUID> dossierIds = page.getContent().stream().map(Cotation::getDossierId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, String> numerosParDossier = dossierService.findNumerosByIds(dossierIds);
+
+        return page.map(c -> toSummary(c, numerosParDossier.get(c.getDossierId())));
     }
 
     @Transactional(readOnly = true)
@@ -275,7 +282,11 @@ public class CotationService {
     }
 
     private CotationSummaryResponse toSummary(Cotation c) {
-        return new CotationSummaryResponse(c.getId(), c.getNumero(), c.getClientId(), c.getDossierId(), c.getStatut(),
+        return toSummary(c, null);
+    }
+
+    private CotationSummaryResponse toSummary(Cotation c, String dossierNumero) {
+        return new CotationSummaryResponse(c.getId(), c.getNumero(), c.getClientId(), c.getDossierId(), dossierNumero, c.getStatut(),
                 c.getMontantTotal(), c.getDevise(), c.getDateCotation());
     }
 }

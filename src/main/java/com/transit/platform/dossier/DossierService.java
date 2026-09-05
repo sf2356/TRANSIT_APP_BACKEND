@@ -241,6 +241,22 @@ public class DossierService {
                 .orElseThrow(() -> BusinessException.notFound(ErrorCode.DOSSIER_NOT_FOUND, "Dossier introuvable"));
     }
 
+    /**
+     * Résout en UN SEUL appel les numéros de dossier pour un lot d'identifiants — évite le
+     * problème classique des N+1 requêtes (une requête par ligne) quand une liste affiche le
+     * numéro de dossier associé (Cotations, Factures, Marchandises...). Réutilisée par les
+     * 3 services concernés plutôt que dupliquée. Ignore silencieusement les identifiants
+     * inexistants ou hors du tenant courant — cet enrichissement est un confort d'affichage,
+     * jamais une vérification de sécurité (qui reste faite ailleurs, via findWithinTenant).
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<UUID, String> findNumerosByIds(java.util.Set<UUID> dossierIds) {
+        if (dossierIds.isEmpty()) return java.util.Map.of();
+        return dossierRepository.findAllById(dossierIds).stream()
+                .filter(d -> d.getEntrepriseId().equals(tenantContext.currentEntrepriseId()))
+                .collect(java.util.stream.Collectors.toMap(Dossier::getId, Dossier::getNumero));
+    }
+
     private StatutDossier parseStatut(String statut) {
         try {
             return StatutDossier.valueOf(statut);
