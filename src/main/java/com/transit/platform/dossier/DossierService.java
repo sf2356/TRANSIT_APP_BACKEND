@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Dossier = entité pivot de la plateforme (Prompt 01 §7). Ce service illustre le patron à
@@ -49,8 +52,16 @@ public class DossierService {
     @Transactional(readOnly = true)
     public Page<DossierSummaryResponse> search(String statut, UUID clientId, UUID responsableId, String search, Pageable pageable) {
         String normalized = search == null ? null : "%" + search.toLowerCase() + "%";
-        return dossierRepository.search(tenantContext.currentEntrepriseId(), statut, clientId, responsableId, normalized, pageable)
-                .map(this::toSummary);
+        Page<Dossier> page = dossierRepository.search(tenantContext.currentEntrepriseId(), statut, clientId, responsableId, normalized, pageable);
+
+        // Même principe d'enrichissement en lot qu'on a déjà appliqué trois fois — sauf que
+        // cette fois la source est TiersRepository (le nom du CLIENT), pas DossierRepository :
+        // le principe généralise, la source de données change selon ce qu'on veut afficher.
+        Set<UUID> clientIds = page.getContent().stream().map(Dossier::getClientId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, String> nomsParClient = tiersRepository.findAllById(clientIds).stream()
+                .collect(Collectors.toMap(Tiers::getId, Tiers::getRaisonSociale));
+
+        return page.map(d -> toSummary(d, nomsParClient.get(d.getClientId())));
     }
 
     @Transactional(readOnly = true)
@@ -274,7 +285,11 @@ public class DossierService {
     }
 
     private DossierSummaryResponse toSummary(Dossier d) {
-        return new DossierSummaryResponse(d.getId(), d.getNumero(), d.getTitre(), d.getClientId(), d.getStatut(),
-                d.getPriorite(), d.getResponsableId(), d.getDateOuverture(), d.getDateEcheance());
+        return toSummary(d, null);
+    }
+
+    private DossierSummaryResponse toSummary(Dossier d, String clientNom) {
+        return new DossierSummaryResponse(d.getId(), d.getNumero(), d.getTitre(), d.getClientId(), clientNom, d.getStatut(),
+                d.getPriorite(), d.getResponsableId(), d.getDateOuverture(), d.getDateEcheance(), d.getOrigine(), d.getDestination());
     }
 }

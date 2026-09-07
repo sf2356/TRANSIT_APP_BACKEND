@@ -5,6 +5,6 @@ import java.util.UUID;
 
 /** Version allégée pour les listes — évite de transporter les champs longs (instructions, notes...). */
 public record DossierSummaryResponse(
-        UUID id, String numero, String titre, UUID clientId, String statut, String priorite,
-        UUID responsableId, LocalDate dateOuverture, LocalDate dateEcheance
+        UUID id, String numero, String titre, UUID clientId, String clientNom, String statut, String priorite,
+        UUID responsableId, LocalDate dateOuverture, LocalDate dateEcheance, String origine, String destination
 ) {}
