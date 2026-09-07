@@ -23,7 +23,8 @@ public interface DossierRepository extends JpaRepository<Dossier, UUID> {
            "AND (:statut IS NULL OR d.statut = :statut) " +
            "AND (:clientId IS NULL OR d.clientId = :clientId) " +
            "AND (:responsableId IS NULL OR d.responsableId = :responsableId) " +
-           "AND (:search IS NULL OR LOWER(d.titre) LIKE %:search% OR LOWER(d.numero) LIKE %:search%)")
+           "AND (:search IS NULL OR LOWER(d.titre) LIKE %:search% OR LOWER(d.numero) LIKE %:search%)" +
+            "ORDER BY d.numero ASC")
     Page<Dossier> search(@Param("entrepriseId") UUID entrepriseId, @Param("statut") String statut,
                           @Param("clientId") UUID clientId, @Param("responsableId") UUID responsableId,
                           @Param("search") String search, Pageable pageable);

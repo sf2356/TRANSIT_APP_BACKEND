@@ -16,7 +16,8 @@ public interface TiersRepository extends JpaRepository<Tiers, UUID> {
     @Query("SELECT t FROM Tiers t WHERE t.entrepriseId = :entrepriseId AND t.deletedAt IS NULL " +
            "AND (:type IS NULL OR t.type = :type) " +
            "AND (:statut IS NULL OR t.statut = :statut) " +
-           "AND (:search IS NULL OR LOWER(t.raisonSociale) LIKE %:search% OR LOWER(t.email) LIKE %:search% OR t.telephone LIKE %:search%)")
+           "AND (:search IS NULL OR LOWER(t.raisonSociale) LIKE %:search% OR LOWER(t.email) LIKE %:search% OR t.telephone LIKE %:search%)" +
+            "ORDER BY t.raisonSociale ASC")
     Page<Tiers> search(@Param("entrepriseId") UUID entrepriseId, @Param("type") String type,
                         @Param("statut") String statut, @Param("search") String search, Pageable pageable);
 }

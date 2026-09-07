@@ -18,7 +18,8 @@ public interface FactureRepository extends JpaRepository<Facture, UUID> {
            "AND (:statut IS NULL OR f.statut = :statut) " +
            "AND (:clientId IS NULL OR f.clientId = :clientId) " +
            "AND (:dossierId IS NULL OR f.dossierId = :dossierId) " +
-           "AND (:search IS NULL OR LOWER(f.numero) LIKE %:search% OR LOWER(f.titre) LIKE %:search%)")
+           "AND (:search IS NULL OR LOWER(f.numero) LIKE %:search% OR LOWER(f.titre) LIKE %:search%)" +
+            "ORDER BY f.numero ASC")
     Page<Facture> search(@Param("entrepriseId") UUID entrepriseId, @Param("statut") String statut,
                           @Param("clientId") UUID clientId, @Param("dossierId") UUID dossierId,
                           @Param("search") String search, Pageable pageable);
@@ -39,7 +40,8 @@ public interface FactureRepository extends JpaRepository<Facture, UUID> {
            "AND f.dateEcheance < CURRENT_DATE AND f.resteAPayer > 0 " +
            "AND (:clientId IS NULL OR f.clientId = :clientId) " +
            "AND (:dossierId IS NULL OR f.dossierId = :dossierId) " +
-           "AND (:search IS NULL OR LOWER(f.numero) LIKE %:search% OR LOWER(f.titre) LIKE %:search%)")
+           "AND (:search IS NULL OR LOWER(f.numero) LIKE %:search% OR LOWER(f.titre) LIKE %:search%)" +
+            "ORDER BY f.numero ASC")
     Page<Facture> searchEnRetard(@Param("entrepriseId") UUID entrepriseId, @Param("clientId") UUID clientId,
                                   @Param("dossierId") UUID dossierId, @Param("search") String search, Pageable pageable);
 

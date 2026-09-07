@@ -17,7 +17,8 @@ public interface CotationRepository extends JpaRepository<Cotation, UUID> {
            "AND (:statut IS NULL OR c.statut = :statut) " +
            "AND (:clientId IS NULL OR c.clientId = :clientId) " +
            "AND (:dossierId IS NULL OR c.dossierId = :dossierId) " +
-           "AND (:search IS NULL OR LOWER(c.numero) LIKE %:search% OR LOWER(c.titre) LIKE %:search%)")
+           "AND (:search IS NULL OR LOWER(c.numero) LIKE %:search% OR LOWER(c.titre) LIKE %:search%)" +
+            "ORDER BY c.numero ASC")
     Page<Cotation> search(@Param("entrepriseId") UUID entrepriseId, @Param("statut") String statut,
                            @Param("clientId") UUID clientId, @Param("dossierId") UUID dossierId,
                            @Param("search") String search, Pageable pageable);
