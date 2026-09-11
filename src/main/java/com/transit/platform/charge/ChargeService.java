@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ChargeService {
@@ -41,8 +44,13 @@ public class ChargeService {
                                        LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
         LocalDate dateDebutEffective = dateDebut != null ? dateDebut : LocalDate.of(1900, 1, 1);
         LocalDate dateFinEffective = dateFin != null ? dateFin : LocalDate.of(2100, 12, 31);
-        return chargeRepository.search(tenantContext.currentEntrepriseId(), dossierId, categorie, fournisseurId,
-                statut, dateDebutEffective, dateFinEffective, pageable).map(this::toResponse);
+        Page<Charge> page = chargeRepository.search(tenantContext.currentEntrepriseId(), dossierId, categorie, fournisseurId,
+                statut, dateDebutEffective, dateFinEffective, pageable);
+
+        Set<UUID> dossierIds = page.getContent().stream().map(Charge::getDossierId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, String> numerosParDossier = dossierService.findNumerosByIds(dossierIds);
+
+        return page.map(c -> toResponse(c, numerosParDossier.get(c.getDossierId())));
     }
 
     @Transactional(readOnly = true)
@@ -112,6 +120,20 @@ public class ChargeService {
         auditService.log("CANCEL", "CHARGE", charge.getId(), null, Map.of("statut", "REJETEE"));
     }
 
+    /**
+     * Confirme le paiement d'un débours/charge (retour utilisateur terrain) — permet de
+     * distinguer "la charge est enregistrée" (EN_ATTENTE, dès sa création) de "elle a
+     * réellement été réglée" (PAYEE), utile pour le suivi de trésorerie par dossier.
+     */
+    @Transactional
+    public void marquerPayee(UUID id) {
+        Charge charge = findWithinTenant(id);
+        charge.setStatut("PAYEE");
+        charge.setUpdatedAt(java.time.Instant.now());
+        chargeRepository.save(charge);
+        auditService.log("PAY", "CHARGE", charge.getId(), null, Map.of("statut", "PAYEE"));
+    }
+
     /** Utilisé par DashboardService / rentabilité (étape 20) pour sommer les charges d'un dossier sans dupliquer le contrôle tenant. */
     @Transactional(readOnly = true)
     public java.util.List<Charge> findAllForDossier(UUID dossierId) {
@@ -125,7 +147,11 @@ public class ChargeService {
     }
 
     private ChargeResponse toResponse(Charge c) {
-        return new ChargeResponse(c.getId(), c.getDossierId(), c.getFournisseurId(), c.getLibelle(), c.getType(),
+        return toResponse(c, null);
+    }
+
+    private ChargeResponse toResponse(Charge c, String dossierNumero) {
+        return new ChargeResponse(c.getId(), c.getDossierId(), dossierNumero, c.getFournisseurId(), c.getLibelle(), c.getType(),
                 c.getCategorie(), c.getMontant(), c.getDevise(), c.getStatut(), c.getDateCharge(), c.getReference(), c.getNotes());
     }
 }

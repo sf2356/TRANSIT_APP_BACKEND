@@ -55,4 +55,11 @@ public class ChargeController {
         chargeService.annuler(id);
         return ApiResponse.of(null);
     }
+
+    @PatchMapping("/{id}/payer")
+    @PreAuthorize("hasAuthority('CHARGE_CREATE')")
+    public ApiResponse<Void> marquerPayee(@PathVariable UUID id) {
+        chargeService.marquerPayee(id);
+        return ApiResponse.of(null);
+    }
 }

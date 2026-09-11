@@ -51,6 +51,6 @@ public class ComptabiliteService {
         var entrees = mouvementCaisseRepository.sumByTypeFiltre(entrepriseId, "ENTREE", dossierId, instantDebut, instantFin);
         var sorties = mouvementCaisseRepository.sumByTypeFiltre(entrepriseId, "SORTIE", dossierId, instantDebut, instantFin);
         return new ComptabiliteOperationnelleResponse(totalFacture, totalEncaisse, reste, charges,
-                entrees, sorties, entrees.subtract(sorties), totalEncaisse.subtract(charges));
+                entrees, sorties, entrees.subtract(sorties), totalFacture.subtract(charges));
     }
 }
