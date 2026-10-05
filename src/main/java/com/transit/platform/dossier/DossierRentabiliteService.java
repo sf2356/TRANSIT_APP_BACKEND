@@ -47,11 +47,11 @@ public class DossierRentabiliteService {
         BigDecimal transport = chargeRepository.sumByDossierAndType(dossierId, "TRANSPORT");
         BigDecimal manutention = chargeRepository.sumByDossierAndType(dossierId, "MANUTENTION");
 
-        // Marge indicative = encaissé - charges (et non facturé - charges) : reflète la
-        // rentabilité RÉELLE déjà matérialisée en trésorerie, cohérent avec l'exemple
-        // fourni au Prompt 03 §32 où totalEncaisse > totalFacture est géré sans incohérence
-        // (reste à encaisser peut alors être négatif, ce qui est correct et affiché tel quel).
-        BigDecimal margeEstimee = totalEncaisse.subtract(totalCharges);
+        // Marge estimée = total FACTURÉ - charges (retour utilisateur terrain). Elle mesure ce qui
+        // a été vendu, indépendamment du rythme d'encaissement : un dossier facturé mais pas encore
+        // payé n'est pas déficitaire. L'encaissé reste affiché à part (totalEncaisse, resteAEncaisser)
+        // pour le suivi de trésorerie. resteAEncaisser peut toujours être négatif (cf. Prompt 03 §32).
+        BigDecimal margeEstimee = totalFacture.subtract(totalCharges);
 
         return new DossierRentabiliteResponse(totalFacture, totalEncaisse, resteAEncaisser, totalCharges,
                 droitsTaxes, transport, manutention, margeEstimee);

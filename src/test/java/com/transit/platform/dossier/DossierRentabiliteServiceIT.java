@@ -110,8 +110,8 @@ class DossierRentabiliteServiceIT {
         assertThat(rentabilite.totalEncaisse()).isEqualByComparingTo("3300000");
         assertThat(rentabilite.resteAEncaisser()).isEqualByComparingTo("-300000"); // négatif, assumé (cf. §32)
         assertThat(rentabilite.totalCharges()).isEqualByComparingTo("2600000");
-        assertThat(rentabilite.margeEstimee()).isEqualByComparingTo("700000"); // 3300000 - 2600000
-    }
+        assertThat(rentabilite.margeEstimee()).isEqualByComparingTo("400000"); // 3000000 (facturé) - 2600000 (charges)
+         }
 
     private UUID creerEntreprise() {
         Entreprise e = new Entreprise();

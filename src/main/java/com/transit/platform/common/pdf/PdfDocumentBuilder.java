@@ -609,19 +609,27 @@ public final class PdfDocumentBuilder {
         Signature signature = ctx.signature();
         if (signature != null && signature.nomSignataire() != null && !signature.nomSignataire().isBlank()) {
             float sigY = Math.min(leftY - 30, boxTop - boxH - 20);
+            float rightX = PAGE_W - MARGIN;
+
+            // Nom et fonction alignés sur la marge droite
+            texte(cb, FONT_BOLD, 10, TEXT_DARK, signature.nomSignataire(), rightX, sigY, Element.ALIGN_RIGHT);
+            if (signature.fonctionSignataire() != null) {
+                texte(cb, FONT_NORMAL, 8, TEXT_MUTED, signature.fonctionSignataire(), rightX, sigY - 13, Element.ALIGN_RIGHT);
+            }
+
+            // Cachet juste en dessous, collé à la marge droite. Une image se positionne par son
+            // coin inférieur gauche : on calcule donc sa largeur réduite pour la caler à droite.
             if (signature.cachetBytes() != null) {
                 try {
                     Image cachet = Image.getInstance(signature.cachetBytes());
                     float size = 60;
                     float scale = Math.min(size / cachet.getWidth(), size / cachet.getHeight());
-                    cachet.setAbsolutePosition(MARGIN, sigY - size + 15);
-                    cachet.scaleAbsolute(cachet.getWidth() * scale, cachet.getHeight() * scale);
+                    float w = cachet.getWidth() * scale;
+                    float h = cachet.getHeight() * scale;
+                    cachet.scaleAbsolute(w, h);
+                    cachet.setAbsolutePosition(rightX - w, sigY - 22 - h);
                     cb.addImage(cachet);
                 } catch (Exception ignored) { /* image illisible : on ignore silencieusement */ }
-            }
-            texte(cb, FONT_BOLD, 10, TEXT_DARK, signature.nomSignataire(), MARGIN + 75, sigY, Element.ALIGN_LEFT);
-            if (signature.fonctionSignataire() != null) {
-                texte(cb, FONT_NORMAL, 8, TEXT_MUTED, signature.fonctionSignataire(), MARGIN + 75, sigY - 13, Element.ALIGN_LEFT);
             }
         }
     }
